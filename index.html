@@ -18,8 +18,6 @@
     <div class="toolbar-sep"></div>
     <span id="battery-label"></span>
     <div style="flex:1"></div>
-    <button class="toolbar-btn" id="btn-save">Save Preset</button>
-    <button class="toolbar-btn" id="btn-mnrs">MNRS</button>
     <button class="toolbar-btn" id="btn-settings">🔧 Settings</button>
     <button id="btn-toggle-tools" class="toolbar-btn">Tools ⚙</button>
   </div>
@@ -31,6 +29,7 @@
     <div id="sidebar">
       <div id="sidebar-header">
         <span id="sidebar-label">Presets</span>
+        <button id="btn-save" class="btn btn-primary" style="font-size:11px;padding:2px 8px">Save</button>
         <button id="btn-sidebar-close" class="panel-close-btn" title="Hide presets">✕</button>
       </div>
       <ul id="preset-list"></ul>
@@ -330,6 +329,14 @@
       <div class="settings-row">
         <label>Color</label>
         <div id="color-swatches" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">MNRS Library</div>
+      <div class="settings-row">
+        <label style="color:var(--text)">Manage slots</label>
+        <button class="btn" id="btn-mnrs">Open MNRS</button>
       </div>
     </div>
 

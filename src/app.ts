@@ -850,6 +850,7 @@ let _pendingMnrsUpload: { cat: 'gnr' | 'gir'; slot: number; name: string; bytes:
 
 qs<HTMLButtonElement>('#btn-mnrs').addEventListener('click', async () => {
   if (!transport.isConnected) { showToast('Not connected', 'error'); return; }
+  qs<HTMLDialogElement>('#dialog-settings').close();
   qs<HTMLDialogElement>('#dialog-mnrs').showModal();
   await _refreshMnrsSlots();
 });
