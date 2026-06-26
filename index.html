@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>F15i Controller</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- Toolbar -->
+  <div id="toolbar">
+    <button id="btn-toggle-presets" class="toolbar-btn" title="Toggle presets">☰ Presets</button>
+    <button id="btn-connect">Connect</button>
+
+    <button id="btn-ble-flag" title="Copy chrome://flags/#enable-web-bluetooth to clipboard">BLE flag</button>
+    <div class="toolbar-sep"></div>
+    <span id="battery-label"></span>
+    <div style="flex:1"></div>
+    <button class="toolbar-btn" id="btn-save">Save Preset</button>
+    <button class="toolbar-btn" id="btn-mnrs">MNRS</button>
+    <button class="toolbar-btn" id="btn-settings">🔧 Settings</button>
+    <button id="btn-toggle-tools" class="toolbar-btn">Tools ⚙</button>
+  </div>
+
+  <!-- Main area -->
+  <div id="main">
+
+    <!-- Sidebar: preset browser -->
+    <div id="sidebar">
+      <div id="sidebar-header">
+        <span id="sidebar-label">Presets</span>
+        <button id="btn-sidebar-close" class="panel-close-btn" title="Hide presets">✕</button>
+      </div>
+      <ul id="preset-list"></ul>
+    </div>
+
+    <!-- Content: FX chain + param editor + tools -->
+    <div id="content">
+
+      <!-- FX chain panel -->
+      <div id="fx-chain-panel">
+        <span id="chain-empty" style="color:var(--text-dim);font-size:12px">
+          Connect to view effects chain
+        </span>
+        <!-- cards are injected here -->
+        <button id="btn-add-fx" title="Add effect">+</button>
+      </div>
+
+      <!-- Param editor + tools side-by-side -->
+      <div style="flex:1;display:flex;overflow:hidden">
+
+        <!-- Param editor (left, wide) -->
+        <div id="param-editor" style="flex:2;min-width:0">
+          <div id="param-editor-header">Select an effect to edit</div>
+          <div id="param-rows"></div>
+        </div>
+
+        <!-- Tools panel (right, fixed ~220px) -->
+        <div id="tools-panel">
+          <div id="tools-tabs">
+            <button class="tools-tab active" data-tab="tuner">Tuner</button>
+            <button class="tools-tab" data-tab="drum">Drum</button>
+            <button class="tools-tab" data-tab="looper">Looper</button>
+            <button id="btn-tools-close" class="panel-close-btn" title="Hide tools">✕</button>
+          </div>
+          <div id="tools-content">
+
+            <!-- Tuner tab -->
+            <div id="tab-tuner">
+              <div id="tuner-note">—</div>
+              <div id="tuner-cents"></div>
+              <canvas id="tuner-meter" width="200" height="48"></canvas>
+              <div class="drum-row" style="margin-top:8px">
+                <label>Ref A</label>
+                <input type="number" id="tuner-ref-a" min="430" max="445" value="440" style="width:60px;text-align:right">
+                <span style="color:var(--text-dim);padding-left:4px">Hz</span>
+              </div>
+              <button class="drum-btn" id="btn-tuner-mute" style="margin-top:6px;width:100%">Mute Input</button>
+            </div>
+
+            <!-- Drum tab -->
+            <div id="tab-drum" class="hidden">
+              <div class="drum-row">
+                <label>BPM</label>
+                <input type="range" id="drum-bpm" min="40" max="260" value="120" style="flex:1">
+                <span id="drum-bpm-val" class="param-value">120</span>
+              </div>
+              <div class="drum-row">
+                <label>Volume</label>
+                <input type="range" id="drum-vol" min="0" max="100" value="60" style="flex:1">
+                <span id="drum-vol-val" class="param-value">60</span>
+              </div>
+              <ul id="drum-track-list"></ul>
+              <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:13px">
+                <input type="checkbox" id="drum-sync">
+                Drum Sync
+              </label>
+              <div style="display:flex;gap:6px;margin-top:8px">
+                <button class="drum-btn" id="btn-drum-play" style="flex:1">Play</button>
+                <button class="drum-btn" id="btn-drum-stop" style="flex:1">Stop</button>
+              </div>
+            </div>
+
+            <!-- Looper tab -->
+            <div id="tab-looper" class="hidden">
+              <div id="looper-status">Idle</div>
+              <div id="looper-position"><div id="looper-bar"></div></div>
+              <button class="looper-btn rec" id="btn-looper-rec">● Record</button>
+              <button class="looper-btn" id="btn-looper-play">▶ Play</button>
+              <button class="looper-btn" id="btn-looper-stop">■ Stop</button>
+              <button class="looper-btn" id="btn-looper-undo">↩ Undo</button>
+              <button class="looper-btn" id="btn-looper-delete">🗑 Delete</button>
+              <div class="drum-row" style="margin-top:8px">
+                <label>Volume</label>
+                <input type="range" id="looper-vol" min="0" max="100" value="60" style="flex:1">
+                <span id="looper-vol-val" class="param-value">60</span>
+              </div>
+            </div>
+
+          </div><!-- /tools-content -->
+        </div><!-- /tools-panel -->
+
+      </div><!-- /flex row -->
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+
+  <!-- Status bar -->
+  <div id="statusbar">
+    <span id="status-tx">—</span>
+    <span id="status-rx">—</span>
+  </div>
+
+</div><!-- /app -->
+
+<!-- Toast notification -->
+<div id="toast"></div>
+
+<!-- ── Dialogs ─────────────────────────────────────────── -->
+
+<!-- Add Effect dialog -->
+<dialog id="dialog-add">
+  <div class="dialog-title">Add Effect</div>
+  <div class="dialog-body">
+    <div id="add-dialog-inner">
+      <ul id="add-cat-list"></ul>
+      <ul id="add-eff-list"></ul>
+    </div>
+  </div>
+  <div class="dialog-footer">
+    <button class="btn" id="btn-add-cancel">Cancel</button>
+    <button class="btn btn-primary" id="btn-add-ok">Add</button>
+  </div>
+</dialog>
+
+<!-- Save Preset dialog -->
+<dialog id="dialog-save">
+  <div class="dialog-title">Save Preset</div>
+  <div class="dialog-body">
+    <div class="save-row">
+      <label>Slot</label>
+      <input type="number" id="save-slot" min="1" max="80" value="1">
+      <span id="save-slot-label" style="font-size:11px;color:var(--text-dim);width:48px">1a</span>
+    </div>
+    <div class="save-row">
+      <label>Name</label>
+      <input type="text" id="save-name" maxlength="20" placeholder="Preset name">
+    </div>
+  </div>
+  <div class="dialog-footer">
+    <button class="btn" id="btn-save-cancel">Cancel</button>
+    <button class="btn btn-primary" id="btn-save-ok">Save</button>
+  </div>
+</dialog>
+
+<!-- MNRS dialog -->
+<dialog id="dialog-mnrs">
+  <div class="dialog-title">MNRS Files (Preamp / Cab IR)</div>
+  <div class="dialog-body">
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px">
+      GNR = Preamp (Amp slot) &nbsp;|&nbsp; GIR = Cab IR (Cab slot)
+    </div>
+    <div style="font-size:12px;font-weight:600;margin-bottom:4px">GNR Slots (Preamp)</div>
+    <table class="mnrs-table" id="mnrs-gnr-table">
+      <thead><tr><th class="slot-cell">#</th><th class="name-cell">Name</th><th>Action</th></tr></thead>
+      <tbody id="mnrs-gnr-body"></tbody>
+    </table>
+    <div style="font-size:12px;font-weight:600;margin-bottom:4px;margin-top:8px">GIR Slots (Cab IR)</div>
+    <table class="mnrs-table" id="mnrs-gir-table">
+      <thead><tr><th class="slot-cell">#</th><th class="name-cell">Name</th><th>Action</th></tr></thead>
+      <tbody id="mnrs-gir-body"></tbody>
+    </table>
+    <div id="mnrs-status"></div>
+    <div id="mnrs-progress"><div id="mnrs-progress-bar"></div></div>
+  </div>
+  <div class="dialog-footer">
+    <button class="btn" id="btn-mnrs-refresh">Refresh</button>
+    <button class="btn" id="btn-mnrs-close">Close</button>
+  </div>
+</dialog>
+
+<!-- Settings dialog -->
+<dialog id="dialog-settings">
+  <div class="dialog-title">Settings</div>
+  <div class="dialog-body" style="min-width:360px">
+
+    <div class="settings-group">
+      <div class="settings-group-title">Device</div>
+      <div class="settings-row">
+        <label>Firmware</label>
+        <span id="set-firmware-ver" style="color:var(--text-dim)">—</span>
+      </div>
+      <div class="settings-row">
+        <label>Amp Name</label>
+        <span id="set-amp-name-display" style="color:var(--text-dim);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</span>
+        <button class="btn" id="btn-rename-amp" style="margin-left:8px">Rename</button>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">Global</div>
+      <div class="settings-row">
+        <label>Global Gain</label>
+        <input type="range" id="set-gain" min="0" max="20" value="9">
+        <span class="settings-val" id="set-gain-val">9</span>
+      </div>
+      <div class="settings-row">
+        <label>Sleep</label>
+        <select id="set-sleep"></select>
+      </div>
+      <div class="settings-row">
+        <label>Bypass</label>
+        <input type="checkbox" id="set-bypass">
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">EQ</div>
+      <div class="settings-row">
+        <label>EQ Enable</label>
+        <input type="checkbox" id="set-eq-enable">
+      </div>
+      <div class="settings-row">
+        <label>100Hz</label>
+        <input type="range" id="set-eq0" min="0" max="48" value="24">
+        <span class="settings-val" id="set-eq0-val">0dB</span>
+      </div>
+      <div class="settings-row">
+        <label>350Hz</label>
+        <input type="range" id="set-eq1" min="0" max="48" value="24">
+        <span class="settings-val" id="set-eq1-val">0dB</span>
+      </div>
+      <div class="settings-row">
+        <label>1800Hz</label>
+        <input type="range" id="set-eq2" min="0" max="48" value="24">
+        <span class="settings-val" id="set-eq2-val">0dB</span>
+      </div>
+      <div class="settings-row">
+        <label>4000Hz</label>
+        <input type="range" id="set-eq3" min="0" max="48" value="24">
+        <span class="settings-val" id="set-eq3-val">0dB</span>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">Mixer</div>
+      <div class="settings-row">
+        <label>BT Mute</label>
+        <input type="checkbox" id="set-bt-mute">
+      </div>
+      <div class="settings-row">
+        <label>BT Level</label>
+        <input type="range" id="set-bt-vol" min="0" max="72" value="47">
+        <span class="settings-val" id="set-bt-vol-val"></span>
+      </div>
+      <div class="settings-row">
+        <label>USB Mute</label>
+        <input type="checkbox" id="set-usb-mute">
+      </div>
+      <div class="settings-row">
+        <label>USB Level</label>
+        <input type="range" id="set-usb-vol" min="0" max="72" value="47">
+        <span class="settings-val" id="set-usb-vol-val"></span>
+      </div>
+      <div class="settings-row">
+        <label>Inst Mute</label>
+        <input type="checkbox" id="set-inst-mute">
+      </div>
+      <div class="settings-row">
+        <label>Inst Level</label>
+        <input type="range" id="set-inst-vol" min="0" max="72" value="54">
+        <span class="settings-val" id="set-inst-vol-val"></span>
+      </div>
+      <div class="settings-row">
+        <label>Master Mute</label>
+        <input type="checkbox" id="set-master-mute">
+      </div>
+      <div class="settings-row">
+        <label>Master Level</label>
+        <input type="range" id="set-master-vol" min="0" max="72" value="60">
+        <span class="settings-val" id="set-master-vol-val"></span>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">Display</div>
+      <div class="settings-row">
+        <label>Brightness</label>
+        <input type="range" id="set-bright" min="0" max="5" value="3">
+        <span class="settings-val" id="set-bright-val">3</span>
+      </div>
+      <div class="settings-row">
+        <label>V-Space</label>
+        <input type="checkbox" id="set-vspace">
+      </div>
+      <div class="settings-row">
+        <label>Lyric</label>
+        <input type="checkbox" id="set-lyric">
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">Lighting</div>
+      <div class="settings-row">
+        <label>Mode</label>
+        <select id="set-lighting-mode"></select>
+      </div>
+      <div class="settings-row">
+        <label>Color</label>
+        <div id="color-swatches" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">Danger Zone</div>
+      <div class="settings-row">
+        <label style="color:var(--text)">Factory Reset</label>
+        <button class="btn btn-danger" id="btn-factory-reset">Reset to Factory</button>
+      </div>
+    </div>
+
+  </div>
+  <div class="dialog-footer">
+    <button class="btn" id="btn-settings-close">Close</button>
+  </div>
+</dialog>
+
+<input type="file" id="mnrs-file-input" style="display:none">
+
+<script type="module" src="/src/app.ts"></script>
+</body>
+</html>

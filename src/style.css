@@ -1,0 +1,860 @@
+/* Design tokens */
+:root {
+  --bg:          #1C1C1C;
+  --surface:     #242424;
+  --card:        #2A2A2A;
+  --card-sel:    #363636;
+  --border:      #3A3A3A;
+  --text:        #E8E8E8;
+  --text-dim:    #888888;
+  --accent:      #E87722;
+  --accent-d:    #5A2D08;
+  --red:         #CC3333;
+  --green:       #44AA44;
+  --yellow:      #CCAA22;
+
+  --cat1: #FF6B35;
+  --cat2: #FFD700;
+  --cat3: #9E9E9E;
+  --cat4: #4FC3F7;
+  --cat5: #AB47BC;
+  --cat6: #26C6DA;
+  --cat7: #66BB6A;
+  --cat8: #7986CB;
+  --cat9: #26A69A;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+/* ── Layout ─────────────────────────────────────────────── */
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+#toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+#main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+#sidebar {
+  width: 200px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+  transition: width 0.22s ease;
+}
+#sidebar.collapsed {
+  width: 0;
+  border-right-width: 0;
+}
+
+#content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#fx-chain-panel {
+  height: 186px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 4px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+#param-editor {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+#statusbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 10px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+/* ── Toolbar ─────────────────────────────────────────────── */
+
+#btn-connect {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+#btn-connect:hover { filter: brightness(1.15); }
+#btn-connect.connected { background: var(--red); }
+
+#device-label {
+  color: var(--text-dim);
+  font-size: 12px;
+  flex: 1;
+}
+
+#battery-label {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.toolbar-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+}
+
+.toolbar-btn {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.toolbar-btn:hover { background: var(--card-sel); }
+
+#btn-ble-flag {
+  background: none;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+  font-size: 11px;
+}
+#btn-ble-flag:hover { color: var(--text); border-color: var(--text-dim); }
+
+/* ── Preset browser (sidebar) ────────────────────────────── */
+
+#sidebar-header {
+  display: flex;
+  align-items: center;
+  padding: 6px 6px 4px 10px;
+  flex-shrink: 0;
+}
+
+#sidebar-label {
+  flex: 1;
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Tools panel ─────────────────────────────────────────── */
+
+#tools-panel {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border);
+  overflow: hidden;
+  transition: width 0.22s ease;
+}
+#tools-panel.collapsed {
+  width: 0;
+  border-left-width: 0;
+}
+
+/* ── Panel toggle / close buttons ───────────────────────── */
+
+.panel-close-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 2px 5px;
+  font-size: 13px;
+  line-height: 1;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.panel-close-btn:hover { color: var(--text); background: var(--card-sel); }
+
+#btn-toggle-presets,
+#btn-toggle-tools {
+  font-size: 15px;
+  padding: 2px 7px;
+  flex-shrink: 0;
+}
+#btn-toggle-presets.active,
+#btn-toggle-tools.active {
+  background: var(--accent-d);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+#preset-list {
+  flex: 1;
+  overflow-y: auto;
+  list-style: none;
+}
+
+#preset-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin: 1px 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#preset-list li:hover { background: var(--card-sel); }
+#preset-list li.active { background: var(--card-sel); color: var(--accent); }
+
+.preset-num {
+  font-size: 11px;
+  color: var(--text-dim);
+  width: 30px;
+  flex-shrink: 0;
+}
+
+/* ── FX chain ────────────────────────────────────────────── */
+
+.fx-slot-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 120px;
+  min-width: 120px;
+  height: 150px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px;
+  padding-bottom: 0;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.fx-slot-card:hover, .fx-slot-card.selected { border-color: var(--accent); }
+.fx-slot-card.disabled { opacity: 0.5; }
+.fx-slot-card.mnrs { border-style: dashed; }
+
+.fx-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.fx-cat-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.fx-enable-toggle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: var(--text-dim);
+  align-self: center;
+}
+.fx-enable-toggle.on { background: var(--green); }
+.fx-enable-toggle.off { background: var(--red); }
+
+.fx-card-mid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+.fx-name {
+  font-size: 11px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+
+.fx-card-bottom {
+  display: flex;
+  align-items: stretch;
+  margin: 4px -6px 0 -6px;
+  border-top: 1px solid var(--border);
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.fx-slot-num {
+  font-size: 9px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.fx-move-btn, .fx-remove-btn {
+  background: none;
+  border: none;
+  border-left: 1px solid var(--border);
+  cursor: pointer;
+  color: var(--text-dim);
+  font-size: 18px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.1s, color 0.1s;
+}
+.fx-move-btn:hover:not(:disabled) { color: var(--accent); background: var(--card-sel); }
+.fx-move-btn:disabled { opacity: 0.2; cursor: default; }
+.fx-remove-btn:hover { color: var(--red); background: var(--card-sel); }
+.fx-card-bottom > button:first-child { border-left: none; }
+
+.fx-chain-arrow {
+  color: var(--text-dim);
+  font-size: 16px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+#btn-add-fx {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px dashed var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 20px;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s;
+}
+#btn-add-fx:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Param editor ────────────────────────────────────────── */
+
+#param-editor-header {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.param-cat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.param-cat-row label {
+  font-size: 11px;
+  color: var(--text-dim);
+  width: 64px;
+  flex-shrink: 0;
+}
+
+.param-cat-row select {
+  flex: 1;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 12px;
+}
+
+.param-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  height: 28px;
+}
+
+.param-name {
+  font-size: 12px;
+  color: var(--text-dim);
+  width: 88px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.param-slider {
+  flex: 1;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  outline: none;
+  cursor: pointer;
+}
+.param-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
+.param-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  cursor: pointer;
+}
+
+.param-value {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--text);
+  width: 72px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── Tools panel tabs ────────────────────────────────────── */
+
+#tools-tabs {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.tools-tab {
+  flex: 1;
+  padding: 6px 4px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 12px;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s;
+}
+.tools-tab:hover { color: var(--text); }
+.tools-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+#tools-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+/* ── Tuner ───────────────────────────────────────────────── */
+
+#tuner-note {
+  font-size: 52px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text);
+  line-height: 1;
+  margin-top: 12px;
+}
+
+#tuner-cents {
+  font-size: 15px;
+  text-align: center;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+#tuner-meter {
+  display: block;
+  width: 100%;
+  height: 48px;
+}
+
+/* ── Drum panel ──────────────────────────────────────────── */
+
+.drum-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.drum-row label { font-size: 11px; color: var(--text-dim); width: 48px; flex-shrink: 0; }
+/* Range inputs ignore flex:1 unless min-width is overridden (browser default ~129px) */
+.drum-row input[type=range] { flex: 1; min-width: 0; }
+/* Narrower value label than the main param editor — BPM/vol are 3 digits max */
+.drum-row .param-value { width: 36px; }
+
+#drum-track-list {
+  list-style: none;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+#drum-track-list li {
+  padding: 3px 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+#drum-track-list li:hover { background: var(--card-sel); }
+#drum-track-list li.active { color: var(--accent); }
+
+.drum-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.drum-btn:hover { background: var(--card-sel); }
+.drum-btn.playing { background: var(--green); color: #000; }
+
+/* ── Looper ──────────────────────────────────────────────── */
+
+#looper-status {
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+#looper-position {
+  width: 100%;
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+#looper-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+  width: 0%;
+  transition: width 0.2s;
+}
+
+.looper-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-bottom: 4px;
+  width: 100%;
+}
+.looper-btn:hover { background: var(--card-sel); }
+.looper-btn.rec { background: var(--red); color: #fff; border-color: var(--red); }
+
+/* ── Dialogs ─────────────────────────────────────────────── */
+
+dialog {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0;
+  min-width: 380px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+}
+dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+dialog::backdrop {
+  background: rgba(0,0,0,0.65);
+}
+
+.dialog-title {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 12px 16px 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.dialog-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 16px 12px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.btn {
+  border-radius: 4px;
+  padding: 5px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+}
+.btn:hover { background: var(--card-sel); }
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.btn-primary:hover { filter: brightness(1.15); }
+.btn-danger {
+  background: var(--red);
+  color: #fff;
+  border-color: var(--red);
+}
+.btn-danger:hover { filter: brightness(1.15); }
+
+/* ── Add-effect dialog ───────────────────────────────────── */
+
+#add-dialog-inner {
+  display: flex;
+  gap: 12px;
+}
+
+#add-cat-list, #add-eff-list {
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  min-height: 200px;
+  overflow-y: auto;
+}
+#add-cat-list { width: 110px; }
+#add-eff-list { flex: 1; }
+
+#add-cat-list li, #add-eff-list li {
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 3px;
+  margin: 1px;
+}
+#add-cat-list li:hover, #add-eff-list li:hover { background: var(--card-sel); }
+#add-cat-list li.active { color: var(--accent); background: var(--card-sel); }
+#add-eff-list li.active { color: var(--accent); background: var(--card-sel); }
+.cat-budget-ok  { color: var(--green); font-size: 10px; margin-left: 4px; }
+.cat-budget-one { color: var(--yellow); font-size: 10px; margin-left: 4px; }
+.cat-budget-no  { color: var(--red); font-size: 10px; margin-left: 4px; opacity: 0.6; }
+
+/* ── MNRS dialog ─────────────────────────────────────────── */
+
+.mnrs-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+.mnrs-table th {
+  color: var(--text-dim);
+  font-weight: 600;
+  text-align: left;
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--border);
+}
+.mnrs-table td {
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--border);
+}
+.mnrs-table tr:hover td { background: var(--card-sel); }
+.mnrs-table .name-cell { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mnrs-table .slot-cell { color: var(--text-dim); width: 32px; }
+
+#mnrs-progress {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  overflow: hidden;
+  margin: 8px 0;
+}
+#mnrs-progress-bar {
+  height: 100%;
+  background: var(--accent);
+  width: 0%;
+  transition: width 0.15s;
+}
+#mnrs-status { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
+
+/* ── Settings dialog ─────────────────────────────────────── */
+
+.settings-group {
+  margin-bottom: 14px;
+}
+.settings-group-title {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 3px;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 7px;
+}
+.settings-row label {
+  font-size: 12px;
+  width: 110px;
+  flex-shrink: 0;
+  color: var(--text-dim);
+}
+.settings-row input[type=range] { flex: 1; }
+.settings-val { font-family: monospace; font-size: 12px; width: 52px; text-align: right; }
+
+.color-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.color-swatch.active { border-color: var(--text); }
+
+/* ── Save dialog ─────────────────────────────────────────── */
+
+.save-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.save-row label { font-size: 12px; width: 60px; color: var(--text-dim); flex-shrink: 0; }
+.save-row input[type=number], .save-row input[type=text] {
+  flex: 1;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 13px;
+}
+
+/* ── EQ editor (4-band/CustomEQ inline) ─────────────────── */
+.eq-col-header {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+  padding-left: 88px;
+}
+.eq-col-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  flex: 1;
+  text-align: center;
+}
+
+/* ── Utility ─────────────────────────────────────────────── */
+
+.hidden { display: none !important; }
+
+select {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 12px;
+}
+
+input[type=range] {
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+#fx-chain-panel::-webkit-scrollbar { height: 20px; }
+#fx-chain-panel::-webkit-scrollbar-thumb { background: var(--text-dim); border-radius: 5px; }
+
+/* ── Mobile ──────────────────────────────────────────────── */
+
+@media (max-width: 680px) {
+  #btn-ble-flag { display: none; }
+  #battery-label { display: none; }
+}
+
+/* Notification toast */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.25s;
+  pointer-events: none;
+}
+#toast.show { opacity: 1; }
+#toast.error { border-color: var(--red); color: var(--red); }
+#toast.ok { border-color: var(--green); color: var(--green); }
