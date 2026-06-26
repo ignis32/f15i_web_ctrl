@@ -99,7 +99,6 @@ html, body {
   flex: 1;
   overflow-y: auto;
   padding: 10px;
-  padding-bottom: calc(10px + env(safe-area-inset-bottom));
 }
 
 #statusbar {
@@ -233,7 +232,6 @@ html, body {
   flex: 1;
   overflow-y: auto;
   list-style: none;
-  padding-bottom: env(safe-area-inset-bottom);
 }
 
 #preset-list li {
@@ -838,6 +836,12 @@ input[type=range] {
 @media (max-width: 680px) {
   #btn-ble-flag { display: none; }
   #battery-label { display: none; }
+}
+
+/* Pad scrollable areas above Android/iOS nav bar on touch devices */
+@media (pointer: coarse) {
+  #param-editor  { padding-bottom: max(env(safe-area-inset-bottom), 56px); }
+  #preset-list   { padding-bottom: max(env(safe-area-inset-bottom), 56px); }
 }
 
 /* Notification toast */
