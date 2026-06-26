@@ -83,7 +83,7 @@ html, body {
 }
 
 #fx-chain-panel {
-  height: 186px;
+  height: 170px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -830,8 +830,6 @@ input[type=range] {
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 
-#fx-chain-panel::-webkit-scrollbar { height: 20px; }
-#fx-chain-panel::-webkit-scrollbar-thumb { background: var(--text-dim); border-radius: 5px; }
 
 /* ── Mobile ──────────────────────────────────────────────── */
 
