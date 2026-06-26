@@ -10,7 +10,6 @@
   },
   "devDependencies": {
     "@types/web-bluetooth": "^0.0.20",
-    "@vitejs/plugin-basic-ssl": "^2.3.0",
     "typescript": "^5.4.5",
     "vite": "^5.2.11"
   }
