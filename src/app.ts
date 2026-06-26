@@ -820,9 +820,13 @@ qs<HTMLButtonElement>('#btn-save-cancel').addEventListener('click', () => {
 });
 
 qs<HTMLButtonElement>('#btn-save-ok').addEventListener('click', async () => {
-  qs<HTMLDialogElement>('#dialog-save').close();
   if (!transport.isConnected) return;
   const slot = parseInt(qs<HTMLInputElement>('#save-slot').value);
+  if (!slot || slot < 1 || slot > 80) {
+    showToast('Slot must be 1–80', 'error');
+    return;
+  }
+  qs<HTMLDialogElement>('#dialog-save').close();
   const name = qs<HTMLInputElement>('#save-name').value.trim();
 
   setStatus(`SavePreset ${slot}`, null);
@@ -1006,6 +1010,9 @@ qs<HTMLButtonElement>('#btn-rename-amp').addEventListener('click', async () => {
     currentSuffix,
   );
   if (suffix === null) return; // cancelled
+  if (!/^[\x20-\x7E]*$/.test(suffix)) {
+    showToast('Name must contain ASCII characters only', 'error'); return;
+  }
   const clamped = suffix.slice(0, 16);
   await transport.write(cmdRenameAmp(clamped, d));
   showToast('Amp renamed — reconnect to see new name', 'ok', 4000);

@@ -99,6 +99,7 @@ html, body {
   flex: 1;
   overflow-y: auto;
   padding: 10px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
 }
 
 #statusbar {
@@ -232,6 +233,7 @@ html, body {
   flex: 1;
   overflow-y: auto;
   list-style: none;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 #preset-list li {
