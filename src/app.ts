@@ -344,6 +344,7 @@ function _buildSlotCard(entry: FxChainEntry, chainIdx: number, chainLen: number)
 
   card.querySelector('.fx-remove-btn')!.addEventListener('click', (ev) => {
     ev.stopPropagation();
+    if (!window.confirm(`Remove ${effName}?`)) return;
     _removeFx(slot);
   });
 
