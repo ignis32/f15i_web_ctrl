@@ -56,6 +56,7 @@ async function _refreshChain(delayMs = 400): Promise<void> {
 
 // Active tool
 let _activeTool: number = 0; // 0 = none, TOOL_TUNER/DRUM/LOOPER
+let _batteryPollTimer: ReturnType<typeof setInterval> | null = null;
 
 // The preset the user explicitly loaded (or the startup preset).
 let _loadedPreset = 1;
@@ -182,12 +183,16 @@ async function _onConnected(): Promise<void> {
     await send(cmdGetPresetNames(1, 80), 'GetPresetNames');
     await delay(300);
     await send(cmdReadPreset(_loadedPreset), `ReadPreset ${_loadedPreset}`);
+    _batteryPollTimer = setInterval(async () => {
+      if (transport.isConnected) await transport.write(cmdGetBatteryInfo());
+    }, 30_000);
   } catch (e: any) {
     showToast(`Startup error: ${e.message ?? e}`, 'error', 4000);
   }
 }
 
 function _onDisconnected(): void {
+  if (_batteryPollTimer) { clearInterval(_batteryPollTimer); _batteryPollTimer = null; }
   const btnConnect = qs<HTMLButtonElement>('#btn-connect');
   btnConnect.textContent = 'Connect';
   btnConnect.classList.remove('connected');
