@@ -905,6 +905,7 @@ function _renderMnrsTable(tbodyId: string, slots: { slot: number; occupied: bool
 }
 
 function _startMnrsUpload(cat: 'gnr' | 'gir', slot: number): void {
+  if (_pendingMnrsUpload) { showToast('Upload already in progress', 'error'); return; }
   const input = qs<HTMLInputElement>('#mnrs-file-input');
   input.onchange = async () => {
     const file = input.files?.[0];
@@ -931,6 +932,7 @@ async function _doMnrsUpload(): Promise<void> {
   const bar = qs<HTMLElement>('#mnrs-progress-bar');
   statusEl.textContent = 'Uploading...';
   bar.style.width = '0%';
+  document.querySelectorAll<HTMLButtonElement>('#dialog-mnrs button.btn').forEach(b => { b.disabled = true; });
   try {
     await transport.uploadMnrs(bytes, slot, name, (sent, total) => {
       bar.style.width = `${Math.round(100 * sent / total)}%`;
@@ -943,8 +945,10 @@ async function _doMnrsUpload(): Promise<void> {
   } catch (e: any) {
     statusEl.textContent = `Error: ${e.message ?? e}`;
     showToast(`Upload failed: ${e.message ?? e}`, 'error', 5000);
+  } finally {
+    _pendingMnrsUpload = null;
+    document.querySelectorAll<HTMLButtonElement>('#dialog-mnrs button.btn').forEach(b => { b.disabled = false; });
   }
-  _pendingMnrsUpload = null;
 }
 
 // ---------------------------------------------------------------------------
