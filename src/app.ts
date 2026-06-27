@@ -132,10 +132,13 @@ transport.on(async (e: TransportEvent) => {
       break;
     case 'fx_budget':
       break;
-    case 'battery':
-      qs<HTMLElement>('#battery-label').textContent = `Battery: ${e.pct}%`;
-      setStatus(null, `Battery ${e.pct}%`);
+    case 'battery': {
+      const charging = e.status !== 0;
+      const label = `${charging ? '⚡ ' : ''}${e.pct}%`;
+      qs<HTMLElement>('#battery-label').textContent = label;
+      setStatus(null, `Battery ${label}`);
       break;
+    }
     case 'tuner':
       _onTuner(e.raw, e.dev);
       break;
@@ -1020,6 +1023,8 @@ qs<HTMLButtonElement>('#btn-rename-amp').addEventListener('click', async () => {
 
 function _syncSettingsFromGlobal(d: Uint8Array): void {
   if (d.length < 91) return;
+
+  _applyDrumFields(d);
 
   // Device info
   qs<HTMLElement>('#set-firmware-ver').textContent = transport.state.firmwareVersion || '—';
